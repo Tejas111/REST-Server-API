@@ -14,8 +14,9 @@ var FileStore = require('session-file-store')(session);
 var app = express();
 var authenticate = require('./authenticate');
 var passport  = require('passport');
+var config = require('./config');
 //for connection using mongdb
-const url = 'mongodb://localhost:27017/tejas';
+const url = config.mongourl;
 const connect = mongoose.connect(url);
 
 connect.then((db) => {
@@ -31,36 +32,14 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser('12345-45678'));//secret key
-app.use(session({
-    name:'session-id',
-    secret:'12345-6789',
-    saveUninitialized:false,
-    resave:false,
-    store:new FileStore()
-}));
 
 //app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
-app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-function auth (req, res, next) {
-    console.log(req.user);
-    if (!req.user) {
-        var err = new Error('You are not authenticated!');
-        res.setHeader('WWW-Authenticate', 'Basic');                          
-        err.status = 401;
-        next(err);
-      }
-      else {
-            next();
-      }
-  
-}
-app.use(auth);
 app.use('/dishes',dishRouter);
 
 // catch 404 and forward to error handler
